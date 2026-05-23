@@ -20,10 +20,25 @@ async function apiRequest(endpoint, options = {}) {
     clearTimeout(timer);
 
     const text = await response.text();
-    const data = text ? JSON.parse(text) : {};
+
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (error) {
+      data = { message: text };
+    }
 
     if (!response.ok) {
-      throw new Error(data.message || data.error || "API request failed");
+      console.log("API ERROR STATUS:", response.status);
+      console.log("API ERROR DATA:", data);
+
+      throw new Error(
+        data.message ||
+          data.error ||
+          data.errors?.[0]?.msg ||
+          JSON.stringify(data) ||
+          "API request failed"
+      );
     }
 
     return data;
@@ -69,6 +84,34 @@ export async function getEmployees(token) {
 export async function getWorksites(token) {
   return apiRequest("/worksites", {
     method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function createTask(token, task) {
+  return apiRequest("/tasks", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(task),
+  });
+}
+
+export async function updateTask(token, taskId, task) {
+  return apiRequest(`/tasks/${taskId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(task),
+  });
+}
+export async function deleteTask(token, taskId) {
+  return apiRequest(`/tasks/${taskId}`, {
+    method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
     },

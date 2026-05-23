@@ -1,13 +1,16 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { GlobalStyles } from "../styles/global";
 
 const Employee = ({ fullName, email, phone, role }) => {
+  const globalStyles = GlobalStyles();
+
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>{fullName}</Text>
-      <Text>Email: {email}</Text>
-      <Text>Phone: {phone}</Text>
-      <Text>Role: {role}</Text>
+      <Text style={[styles.title, globalStyles.title]}>{fullName}</Text>
+      <Text style={globalStyles.text}>Email: {email}</Text>
+      <Text style={globalStyles.text}>Phone: {phone}</Text>
+      <Text style={globalStyles.text}>Role: {role}</Text>
     </View>
   );
 };
@@ -24,7 +27,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
   },
   title: {
-    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
   },

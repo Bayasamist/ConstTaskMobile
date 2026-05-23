@@ -1,17 +1,32 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { GlobalStyles } from "../styles/global";
 
-const Task = ({title,description,status,priority,dueDate,worksite,assignedTo,}) => {
+const Task = ({
+  title,
+  description,
+  status,
+  priority,
+  dueDate,
+  worksite,
+  assignedTo,
+  onPress,
+}) => {
+  const globalStyles = GlobalStyles();
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.text}>{description}</Text>
-      <Text>Status: {status}</Text>
-      <Text>Priority: {priority}</Text>
-      <Text>Due Date: {dueDate}</Text>
-      <Text>Worksite: {worksite}</Text>
-      <Text>Assigned To: {assignedTo}</Text>
-    </View>
+    <TouchableOpacity onPress={onPress}>
+      <View style={styles.card}>
+        <Text style={[styles.title, globalStyles.title]}>{title}</Text>
+        <Text style={globalStyles.text}>{description}</Text>
+        <Text style={globalStyles.text}>Status: {status}</Text>
+        <Text style={globalStyles.text}>Priority: {priority}</Text>
+        <Text style={globalStyles.text}>Due Date: {dueDate}</Text>
+        <Text style={globalStyles.text}>Worksite: {worksite}</Text>
+        <Text style={globalStyles.text}>Assigned To: {assignedTo}</Text>
+        <Text style={styles.tapText}>Tap to edit</Text>
+      </View>
+    </TouchableOpacity>
   );
 };
 
@@ -27,12 +42,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
   },
   title: {
-    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
   },
-  text: {
-    marginBottom: 5,
-    color: "#333",
+  tapText: {
+    marginTop: 8,
+    color: "gray",
+    fontStyle: "italic",
   },
 });
