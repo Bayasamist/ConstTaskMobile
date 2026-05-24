@@ -123,7 +123,7 @@ export default function EmployeesScreen({ token }) {
         style={styles.list}
         data={employees}
         renderItem={({ item }) => (
-        <Employee
+       <Employee
           fullName={
             item.fullName ||
             item.name ||
@@ -132,6 +132,7 @@ export default function EmployeesScreen({ token }) {
           email={item.email}
           phone={item.phone}
           role={item.position || item.role}
+          imageUrl={item.imageUrl}
           onPress={() => {
             setSelectedEmployee(item);
             setShowEditEmployee(true);

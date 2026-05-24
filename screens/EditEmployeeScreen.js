@@ -8,7 +8,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Image,
 } from "react-native";
+
+import * as ImagePicker from "expo-image-picker";
 
 import { GlobalLayout } from "../components/Layout";
 import { updateEmployee, deleteEmployee } from "../services/api";
@@ -62,6 +65,7 @@ export default function EditEmployeeScreen({
   const [position, setPosition] = useState(
     employee.position || employee.role || "Worker"
   );
+  const [imageUrl, setImageUrl] = useState(employee.imageUrl || "");
 
   const [message, setMessage] = useState("");
 
@@ -70,6 +74,26 @@ export default function EditEmployeeScreen({
     { label: "Concrete", value: "Concrete" },
     { label: "Admin", value: "Admin" },
   ];
+
+  const handlePickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      setMessage("Permission is required to choose an image.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImageUrl(result.assets[0].uri);
+    }
+  };
 
   const handleUpdateEmployee = async () => {
     try {
@@ -93,8 +117,11 @@ export default function EditEmployeeScreen({
         position: position,
         role: position,
         active: true,
+        imageUrl: imageUrl,
       });
-Alert.alert("Success", "employee updated successfully.");
+
+      Alert.alert("Success", "Employee updated successfully.");
+
       if (onEmployeeUpdated) {
         onEmployeeUpdated();
       }
@@ -103,35 +130,35 @@ Alert.alert("Success", "employee updated successfully.");
     }
   };
 
-const handleDeleteEmployee = () => {
-  Alert.alert(
-    "Delete Employee",
-    "Are you sure you want to delete this employee?",
-    [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            setMessage("Deleting employee...");
-
-            await deleteEmployee(token, employee._id || employee.id);
-
-            if (onEmployeeUpdated) {
-              onEmployeeUpdated();
-            }
-          } catch (error) {
-            setMessage(error.message);
-          }
+  const handleDeleteEmployee = () => {
+    Alert.alert(
+      "Delete Employee",
+      "Are you sure you want to delete this employee?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
         },
-      },
-    ]
-  );
-};
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setMessage("Deleting employee...");
+
+              await deleteEmployee(token, employee._id || employee.id);
+
+              if (onEmployeeUpdated) {
+                onEmployeeUpdated();
+              }
+            } catch (error) {
+              setMessage(error.message);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <GlobalLayout>
@@ -142,12 +169,32 @@ const handleDeleteEmployee = () => {
           <Button title="Back to Employees" onPress={onBack} />
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Full name"
-          value={fullName}
-          onChangeText={(text) => setFullName(text)}
-        />
+       {imageUrl ? (
+  <Image source={{ uri: imageUrl }} style={styles.profileImage} />
+) : (
+  <View style={styles.imagePlaceholder}>
+    <Text>No Image</Text>
+  </View>
+)}
+
+<View style={styles.button}>
+  <Button title="Choose Profile Picture" onPress={handlePickImage} />
+</View>
+
+<TextInput
+  style={styles.input}
+  placeholder="Image URL"
+  value={imageUrl}
+  onChangeText={(text) => setImageUrl(text)}
+  autoCapitalize="none"
+/>
+
+<TextInput
+  style={styles.input}
+  placeholder="Full name"
+  value={fullName}
+  onChangeText={(text) => setFullName(text)}
+/>
 
         <TextInput
           style={styles.input}
@@ -200,6 +247,23 @@ const styles = StyleSheet.create({
   backButton: {
     marginBottom: 10,
   },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignSelf: "center",
+    marginBottom: 10,
+  },
+  imagePlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignSelf: "center",
+    marginBottom: 10,
+    backgroundColor: "#ddd",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   label: {
     fontWeight: "bold",
     marginBottom: 4,
@@ -251,6 +315,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 8,
+    marginBottom: 8,
   },
   message: {
     marginTop: 10,
