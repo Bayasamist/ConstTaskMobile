@@ -5,9 +5,9 @@ import {
   StyleSheet,
   Button,
   View,
-  Platform,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -149,7 +149,7 @@ export default function EditTaskScreen({ token, task, onBack, onTaskUpdated }) {
         worksite: worksiteId,
       });
 
-      setMessage("Task updated successfully.");
+      Alert.alert("Success", "task updated successfully.");
 
       if (onTaskUpdated) {
         onTaskUpdated();
@@ -159,19 +159,35 @@ export default function EditTaskScreen({ token, task, onBack, onTaskUpdated }) {
     }
   };
 
-  const handleDeleteTask = async () => {
-    try {
-      setMessage("Deleting task...");
+  const handleDeleteTask = () => {
+  Alert.alert(
+    "Delete Task",
+    "Are you sure you want to delete this task?",
+    [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setMessage("Deleting task...");
 
-      await deleteTask(token, task._id || task.id);
+            await deleteTask(token, task._id || task.id);
 
-      if (onTaskUpdated) {
-        onTaskUpdated();
-      }
-    } catch (error) {
-      setMessage(error.message);
-    }
-  };
+            if (onTaskUpdated) {
+              onTaskUpdated();
+            }
+          } catch (error) {
+            setMessage(error.message);
+          }
+        },
+      },
+    ]
+  );
+};
 
   const employeeOptions = employees.map((employee) => ({
     label: employee.fullName || employee.name || "Unnamed employee",

@@ -1,17 +1,20 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { GlobalStyles } from "../styles/global";
 
-const Employee = ({ fullName, email, phone, role }) => {
+const Employee = ({ fullName, email, phone, role, onPress }) => {
   const globalStyles = GlobalStyles();
 
   return (
-    <View style={styles.card}>
-      <Text style={[styles.title, globalStyles.title]}>{fullName}</Text>
-      <Text style={globalStyles.text}>Email: {email}</Text>
-      <Text style={globalStyles.text}>Phone: {phone}</Text>
-      <Text style={globalStyles.text}>Role: {role}</Text>
-    </View>
+    <TouchableOpacity onPress={onPress}>
+      <View style={styles.card}>
+        <Text style={[styles.title, globalStyles.title]}>{fullName}</Text>
+        <Text style={globalStyles.text}>Email: {email}</Text>
+        <Text style={globalStyles.text}>Phone: {phone}</Text>
+        <Text style={globalStyles.text}>Role: {role}</Text>
+        <Text style={styles.tapText}>Tap to edit</Text>
+      </View>
+    </TouchableOpacity>
   );
 };
 
@@ -29,5 +32,10 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: "bold",
     marginBottom: 5,
+  },
+  tapText: {
+    marginTop: 8,
+    color: "gray",
+    fontStyle: "italic",
   },
 });

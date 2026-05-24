@@ -1,15 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { Text, TextInput, FlatList, StyleSheet } from "react-native";
+import {
+  Text,
+  TextInput,
+  FlatList,
+  StyleSheet,
+  Button,
+  View,
+} from "react-native";
 
 import { GlobalLayout } from "../components/Layout";
 import Worksite from "../components/Worksite";
+import CreateWorksiteScreen from "./CreateWorksiteScreen";
+import EditWorksiteScreen from "./EditWorksiteScreen";
 import { getWorksites } from "../services/api";
 
 export default function WorksitesScreen({ token }) {
   const [worksites, setWorksites] = useState([]);
   const [allWorksites, setAllWorksites] = useState([]);
+
   const [input, setInput] = useState("");
   const [message, setMessage] = useState("");
+
+  const [showCreateWorksite, setShowCreateWorksite] = useState(false);
+  const [showEditWorksite, setShowEditWorksite] = useState(false);
+  const [selectedWorksite, setSelectedWorksite] = useState(null);
 
   const loadWorksites = async () => {
     try {
@@ -45,9 +59,47 @@ export default function WorksitesScreen({ token }) {
     setWorksites(results);
   };
 
+  if (showCreateWorksite) {
+    return (
+      <CreateWorksiteScreen
+        token={token}
+        onBack={() => setShowCreateWorksite(false)}
+        onWorksiteCreated={async () => {
+          await loadWorksites();
+          setShowCreateWorksite(false);
+        }}
+      />
+    );
+  }
+
+  if (showEditWorksite && selectedWorksite) {
+    return (
+      <EditWorksiteScreen
+        token={token}
+        worksite={selectedWorksite}
+        onBack={() => {
+          setShowEditWorksite(false);
+          setSelectedWorksite(null);
+        }}
+        onWorksiteUpdated={async () => {
+          await loadWorksites();
+          setShowEditWorksite(false);
+          setSelectedWorksite(null);
+        }}
+      />
+    );
+  }
+
   return (
     <GlobalLayout>
       <Text style={styles.heading}>Worksites</Text>
+
+      <View style={styles.topButton}>
+        <Button
+          title="Create New Worksite"
+          onPress={() => setShowCreateWorksite(true)}
+        />
+      </View>
 
       <TextInput
         style={styles.searchBar}
@@ -71,6 +123,10 @@ export default function WorksitesScreen({ token }) {
             address={item.address}
             suburb={item.suburb}
             status={item.status}
+            onPress={() => {
+              setSelectedWorksite(item);
+              setShowEditWorksite(true);
+            }}
           />
         )}
         keyExtractor={(item, index) => item._id || item.id || index.toString()}
@@ -86,6 +142,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     textAlign: "center",
+  },
+  topButton: {
+    marginBottom: 10,
   },
   searchBar: {
     height: 40,

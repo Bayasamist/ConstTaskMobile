@@ -117,3 +117,62 @@ export async function deleteTask(token, taskId) {
     },
   });
 }
+
+export async function createEmployee(token, employee) {
+  return apiRequest("/employees", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(employee),
+  });
+}
+
+export async function updateEmployee(token, employeeId, employee) {
+  return apiRequest(`/employees/${employeeId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(employee),
+  });
+}
+
+export async function deleteEmployee(token, employeeId) {
+  return apiRequest(`/employees/${employeeId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+
+export async function createWorksite(token, worksite) {
+  return apiRequest("/worksites", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(worksite),
+  });
+}
+
+export async function updateWorksite(token, worksiteId, worksite) {
+  return apiRequest(`/worksites/${worksiteId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(worksite),
+  });
+}
+
+export async function deleteWorksite(token, worksiteId) {
+  return apiRequest(`/worksites/${worksiteId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}

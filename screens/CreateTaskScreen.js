@@ -8,6 +8,7 @@ import {
   Platform,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -145,7 +146,8 @@ export default function CreateTaskScreen({ token, onBack, onTaskCreated }) {
         worksite: worksiteId,
         employeeResponse: "pending",
         });
-      setMessage("Task created successfully.");
+            Alert.alert("Success", "Task created successfully.");
+
 
       if (onTaskCreated) {
         onTaskCreated();
