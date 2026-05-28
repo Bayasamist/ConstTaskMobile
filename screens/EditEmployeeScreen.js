@@ -14,7 +14,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 
 import { GlobalLayout } from "../components/Layout";
-import { updateEmployee, deleteEmployee } from "../services/api";
+import { updateEmployee, deleteEmployee, getImageUrl } from "../services/api";
 
 function Dropdown({ label, value, options, onSelect }) {
   const [open, setOpen] = useState(false);
@@ -66,7 +66,6 @@ export default function EditEmployeeScreen({
     employee.position || employee.role || "Worker"
   );
   const [imageUrl, setImageUrl] = useState(employee.imageUrl || "");
-
   const [message, setMessage] = useState("");
 
   const positionOptions = [
@@ -75,26 +74,83 @@ export default function EditEmployeeScreen({
     { label: "Admin", value: "Admin" },
   ];
 
+  const previewImage = getImageUrl(imageUrl);
+
   const handlePickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    try {
+      setMessage("Opening image picker...");
+
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        Alert.alert(
+          "Permission needed",
+          "Please allow photo library access to choose a profile picture."
+        );
+        setMessage("");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      console.log("IMAGE PICKER RESULT:", result);
+
+      if (!result.canceled) {
+        const imageUri = result.assets[0].uri;
+        setImageUrl(imageUri);
+        setMessage("Image selected. Press Update Employee to save.");
+      } else {
+        setMessage("");
+      }
+    } catch (error) {
+      console.log("IMAGE PICKER ERROR:", error);
+      Alert.alert("Image Picker Error", error.message);
+      setMessage(error.message);
+    }
+  };
+const handleTakePhoto = async () => {
+  try {
+    setMessage("Opening camera...");
+
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
 
     if (!permission.granted) {
-      setMessage("Permission is required to choose an image.");
+      Alert.alert(
+        "Permission needed",
+        "Please allow camera access to take a profile picture."
+      );
+      setMessage("");
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
     });
 
-    if (!result.canceled) {
-      setImageUrl(result.assets[0].uri);
-    }
-  };
+    console.log("CAMERA RESULT:", result);
 
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      setImageUrl(imageUri);
+      setMessage("Photo selected. Press Update Employee to save.");
+    } else {
+      setMessage("");
+    }
+  } catch (error) {
+    console.log("CAMERA ERROR:", error);
+    Alert.alert("Camera Error", error.message);
+    setMessage(error.message);
+  }
+};
   const handleUpdateEmployee = async () => {
     try {
       if (fullName === "" || email === "" || phone === "" || position === "") {
@@ -169,32 +225,50 @@ export default function EditEmployeeScreen({
           <Button title="Back to Employees" onPress={onBack} />
         </View>
 
-       {imageUrl ? (
-  <Image source={{ uri: imageUrl }} style={styles.profileImage} />
-) : (
-  <View style={styles.imagePlaceholder}>
-    <Text>No Image</Text>
-  </View>
-)}
+        {previewImage ? (
+          <>
+            <Image
+              source={{ uri: previewImage }}
+              style={styles.profileImage}
+              resizeMode="cover"
+              onLoad={() => {
+                console.log("IMAGE LOADED:", previewImage);
+              }}
+              onError={(error) => {
+                console.log("IMAGE LOAD ERROR:", previewImage);
+                console.log("IMAGE ERROR DETAILS:", error.nativeEvent);
+                setMessage("Image could not load. Check terminal log.");
+              }}
+            />
 
-<View style={styles.button}>
-  <Button title="Choose Profile Picture" onPress={handlePickImage} />
-</View>
+            <Text style={styles.imageDebug}>{previewImage}</Text>
+          </>
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Text>No Image</Text>
+          </View>
+        )}
 
-<TextInput
-  style={styles.input}
-  placeholder="Image URL"
-  value={imageUrl}
-  onChangeText={(text) => setImageUrl(text)}
-  autoCapitalize="none"
-/>
+        <View style={styles.button}>
+          <Button title="Choose Profile Picture" onPress={handlePickImage} />
+        </View>
+      <View style={styles.button}>
+        <Button title="Take Photo" onPress={handleTakePhoto} />
+      </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Image URL"
+          value={imageUrl}
+          onChangeText={(text) => setImageUrl(text)}
+          autoCapitalize="none"
+        />
 
-<TextInput
-  style={styles.input}
-  placeholder="Full name"
-  value={fullName}
-  onChangeText={(text) => setFullName(text)}
-/>
+        <TextInput
+          style={styles.input}
+          placeholder="Full name"
+          value={fullName}
+          onChangeText={(text) => setFullName(text)}
+        />
 
         <TextInput
           style={styles.input}
@@ -253,6 +327,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignSelf: "center",
     marginBottom: 10,
+    backgroundColor: "#ddd",
   },
   imagePlaceholder: {
     width: 100,
@@ -263,6 +338,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#ddd",
     justifyContent: "center",
     alignItems: "center",
+  },
+  imageDebug: {
+    fontSize: 10,
+    color: "gray",
+    marginBottom: 8,
   },
   label: {
     fontWeight: "bold",

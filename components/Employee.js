@@ -1,15 +1,17 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { GlobalStyles } from "../styles/global";
+import { getImageUrl } from "../services/api";
 
 const Employee = ({ fullName, email, phone, role, imageUrl, onPress }) => {
   const globalStyles = GlobalStyles();
+  const profileImage = getImageUrl(imageUrl);
 
   return (
     <TouchableOpacity onPress={onPress}>
       <View style={styles.card}>
-        {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={styles.image} />
+        {profileImage ? (
+          <Image source={{ uri: profileImage }} style={styles.image} />
         ) : (
           <View style={styles.placeholder}>
             <Text style={styles.placeholderText}>No Image</Text>

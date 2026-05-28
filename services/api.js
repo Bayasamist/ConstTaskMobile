@@ -1,4 +1,29 @@
+export const BASE_URL = "https://banksia04.ifn666.com/assessment02/api";
 export const API_URL = "https://banksia04.ifn666.com/assessment02/api";
+
+export function getImageUrl(imageUrl) {
+  if (!imageUrl) {
+    return "";
+  }
+
+  if (imageUrl.startsWith("http")) {
+    return imageUrl;
+  }
+
+  if (imageUrl.startsWith("file://")) {
+    return imageUrl;
+  }
+
+  if (imageUrl.startsWith("content://")) {
+    return imageUrl;
+  }
+
+  if (imageUrl.startsWith("/")) {
+    return `${BASE_URL}${imageUrl}`;
+  }
+
+  return `${BASE_URL}/${imageUrl}`;
+}
 
 async function apiRequest(endpoint, options = {}) {
   const controller = new AbortController();
@@ -72,24 +97,6 @@ export async function getTasks(token) {
   });
 }
 
-export async function getEmployees(token) {
-  return apiRequest("/employees", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function getWorksites(token) {
-  return apiRequest("/worksites", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
 export async function createTask(token, task) {
   return apiRequest("/tasks", {
     method: "POST",
@@ -109,9 +116,19 @@ export async function updateTask(token, taskId, task) {
     body: JSON.stringify(task),
   });
 }
+
 export async function deleteTask(token, taskId) {
   return apiRequest(`/tasks/${taskId}`, {
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function getEmployees(token) {
+  return apiRequest("/employees", {
+    method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -129,12 +146,74 @@ export async function createEmployee(token, employee) {
 }
 
 export async function updateEmployee(token, employeeId, employee) {
+  const { imageUrl, ...fields } = employee;
+
+  if (
+    imageUrl &&
+    (imageUrl.startsWith("file://") || imageUrl.startsWith("content://"))
+  ) {
+    const formData = new FormData();
+
+    formData.append("image", {
+      uri: imageUrl,
+      name: "employee-profile.jpg",
+      type: "image/jpeg",
+    });
+
+    Object.entries(fields).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const response = await fetch(`${API_URL}/employees/${employeeId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timer);
+
+      const text = await response.text();
+
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (error) {
+        data = { message: text };
+      }
+
+      if (!response.ok) {
+        console.log("API ERROR STATUS:", response.status);
+        console.log("API ERROR DATA:", data);
+        throw new Error(data.message || data.error || "Update failed");
+      }
+
+      return data;
+    } catch (error) {
+      clearTimeout(timer);
+
+      if (error.name === "AbortError") {
+        throw new Error("Request timed out.");
+      }
+
+      throw new Error(error.message);
+    }
+  }
+
   return apiRequest(`/employees/${employeeId}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(employee),
+    body: JSON.stringify({ ...fields, imageUrl }),
   });
 }
 
@@ -147,6 +226,14 @@ export async function deleteEmployee(token, employeeId) {
   });
 }
 
+export async function getWorksites(token) {
+  return apiRequest("/worksites", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
 
 export async function createWorksite(token, worksite) {
   return apiRequest("/worksites", {

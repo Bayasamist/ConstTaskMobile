@@ -19,7 +19,7 @@ const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("password123");
 
   const [loggedIn, setLoggedIn] = useState(false);
   const [token, setToken] = useState("");
